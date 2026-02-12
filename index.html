@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skin Disease Predictor</title>
+
+<style>
+/* ===== Body Styling ===== */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #dad5dc, #9c80b6);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ===== Main Card ===== */
+.container {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+  width: 420px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* ===== Title ===== */
+h1 {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+/* ===== Subtitle ===== */
+.subtitle {
+  font-size: 18px;
+  color: #555;
+  margin-bottom: 30px;
+}
+
+/* ===== Upload Box ===== */
+.upload-box {
+  display: block;
+  border: 2px dashed #7b68ee;
+  padding: 25px;
+  font-size: 20px;
+  cursor: pointer;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  background: #f9f9ff;
+}
+
+/* Hide default file input button */
+.upload-box input {
+  display: none;
+}
+
+/* ===== Image Preview ===== */
+#preview {
+  width: 200px;
+  margin-top: 15px;
+  display: none;
+  border-radius: 10px;
+}
+
+/* ===== Button ===== */
+button {
+  margin-top: 25px;
+  width: 100%;
+  padding: 18px;
+  font-size: 20px;
+  background: linear-gradient(90deg, #20c997, #4dabf7);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+/* ===== Result Text ===== */
+#result {
+  margin-top: 20px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>🧬 Skin Disease Predictor</h1>
+  <p class="subtitle">Upload a dermoscopic image to get AI prediction</p>
+
+  <!-- Upload -->
+  <label class="upload-box">
+    📤 Click to Upload Image
+    <input type="file" id="imageInput" accept="image/*">
+  </label>
+
+  <!-- Preview -->
+  <img id="preview">
+
+  <!-- Predict Button -->
+  <button onclick="predict()">🔍 Predict Disease</button>
+
+  <!-- Result -->
+  <div id="result"></div>
+
+</div>
+
+<script>
+/* ===== Image Preview ===== */
+const input = document.getElementById("imageInput");
+const preview = document.getElementById("preview");
+
+input.addEventListener("change", function () {
+  const file = this.files[0];
+
+  if (file) {
+    preview.style.display = "block";
+    preview.src = URL.createObjectURL(file);
+  }
+});
+
+
+/* ===== Prediction Function ===== */
+function predict() {
+
+  if (!input.files.length) {
+    alert("Please upload an image first!");
+    return;
+  }
+
+  const file = input.files[0];
+
+  // Form data to send image
+  const formData = new FormData();
+  formData.append("file", file);
+
+  // Loading text
+  document.getElementById("result").innerHTML =
+    "⏳ Predicting... Please wait";
+
+  // API Call to Flask
+  fetch("http://127.0.0.1:5000/predict", {
+    method: "POST",
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+
+    if (data.error) {
+      document.getElementById("result").innerHTML =
+        "❌ Error: " + data.error;
+      return;
+    }
+
+    document.getElementById("result").innerHTML =
+      "Prediction: <span style='color:#6a5acd'>" +
+      data.prediction +
+      "</span><br>Confidence: " +
+      data.confidence + "%";
+  })
+  .catch(error => {
+    console.error(error);
+    document.getElementById("result").innerHTML =
+      "⚠️ Server Error — Check Flask backend";
+  });
+}
+</script>
+
+</body>
+</html>
